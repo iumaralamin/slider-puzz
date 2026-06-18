@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: telegram-puzzle-bot
+    runtime: node
+    plan: free
+    startCommand: node server.js
+
+databases:
+  - name: puzzle-db
+    databaseName: puzzle_db
+    user: puzzle_user
+    plan: free
