@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Admin Panel - Puzzle Game</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-nav { display: flex; gap: 8px; padding: 10px; background: var(--tg-theme-bg-color, #fff); border-bottom: 1px solid var(--tg-theme-hint-color, #ccc); overflow-x: auto; }
+        .admin-nav button { padding: 8px 16px; border: none; border-radius: 8px; background: var(--tg-theme-secondary-bg-color, #f0f0f0); color: var(--tg-theme-text-color, #000); cursor: pointer; white-space: nowrap; font-size: 14px; }
+        .admin-nav button.active { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+        .admin-section { display: none; padding: 16px; }
+        .admin-section.active { display: block; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--tg-theme-text-color, #000); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--tg-theme-hint-color, #ccc); border-radius: 8px; background: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #000); font-size: 14px; }
+        .levels-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
+        .levels-table th, .levels-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--tg-theme-hint-color, #eee); }
+        .levels-table th { background: var(--tg-theme-secondary-bg-color, #f5f5f5); font-weight: 600; }
+        .levels-table img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+        .btn-small { padding: 4px 10px; font-size: 12px; margin: 2px; }
+        .stats-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--tg-theme-secondary-bg-color, #f5f5f5); padding: 16px; border-radius: 12px; text-align: center; }
+        .stat-card .number { font-size: 28px; font-weight: bold; color: var(--tg-theme-button-color, #2481cc); }
+        .stat-card .label { font-size: 12px; color: var(--tg-theme-hint-color, #666); margin-top: 4px; }
+        .dimension-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .dimension-option { padding: 8px 16px; border: 2px solid var(--tg-theme-hint-color, #ccc); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .dimension-option.selected { border-color: var(--tg-theme-button-color, #2481cc); background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+        .preview-area { margin-top: 16px; text-align: center; }
+        .preview-area img { max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid var(--tg-theme-hint-color, #ccc); }
+        .actions-log { max-height: 400px; overflow-y: auto; }
+        .action-item { padding: 10px; border-bottom: 1px solid var(--tg-theme-hint-color, #eee); font-size: 13px; }
+        .action-item .time { color: var(--tg-theme-hint-color, #999); font-size: 11px; }
+        .action-item .admin-name { font-weight: 600; color: var(--tg-theme-button-color, #2481cc); }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--tg-theme-button-color, #2481cc); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .access-denied { text-align: center; padding: 60px 20px; }
+        .access-denied h2 { font-size: 48px; margin-bottom: 16px; }
+        .access-denied p { color: var(--tg-theme-hint-color, #666); }
+    </style>
+</head>
+<body>
+    <div id="admin-app">
+        <div id="admin-loading" class="screen active">
+            <div class="loader"><p>Checking admin access...</p></div>
+        </div>
+        <div id="access-denied" class="screen hidden">
+            <div class="access-denied">
+                <h2>🚫</h2><h3>Access Denied</h3>
+                <p>You are not authorized to access the admin panel.</p>
+                <button class="btn btn-primary" onclick="goToGame()">Go to Game</button>
+            </div>
+        </div>
+        <div id="admin-panel" class="screen hidden">
+            <div class="screen-header">
+                <h2>⚙️ Admin Panel</h2>
+                <span id="admin-username" style="font-size: 12px; color: var(--tg-theme-hint-color, #666);"></span>
+            </div>
+            <div class="admin-nav">
+                <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button onclick="showTab('levels')">🧩 Levels</button>
+                <button onclick="showTab('add-level')">➕ Add Level</button>
+                <button onclick="showTab('leaderboard')">🏆 Leaderboard</button>
+                <button onclick="showTab('users')">👥 Users</button>
+                <button onclick="showTab('actions')">📋 Actions</button>
+            </div>
+            <div id="tab-dashboard" class="admin-section active">
+                <div class="stats-cards">
+                    <div class="stat-card"><div class="number" id="stat-users">0</div><div class="label">Total Users</div></div>
+                    <div class="stat-card"><div class="number" id="stat-levels">0</div><div class="label">Total Levels</div></div>
+                    <div class="stat-card"><div class="number" id="stat-completed">0</div><div class="label">Levels Completed</div></div>
+                    <div class="stat-card"><div class="number" id="stat-active">0</div><div class="label">Active Today</div></div>
+                </div>
+            </div>
+            <div id="tab-levels" class="admin-section">
+                <h3>Manage Levels</h3>
+                <table class="levels-table">
+                    <thead><tr><th>Image</th><th>Name</th><th>Dim</th><th>Points</th><th>Active</th><th>Actions</th></tr></thead>
+                    <tbody id="levels-table-body"></tbody>
+                </table>
+            </div>
+            <div id="tab-add-level" class="admin-section">
+                <h3>Add New Level</h3>
+                <form id="add-level-form" onsubmit="return addLevel(event)">
+                    <div class="form-group"><label>Level Name</label><input type="text" id="level-name-input" required placeholder="e.g. Sunset Beach"></div>
+                    <div class="form-group"><label>Description</label><textarea id="level-desc-input" rows="2" placeholder="Optional"></textarea></div>
+                    <div class="form-group"><label>Puzzle Dimension</label><div class="dimension-options"><div class="dimension-option selected" data-dim="3x3" onclick="selectDim(this)">3×3</div><div class="dimension-option" data-dim="4x4" onclick="selectDim(this)">4×4</div><div class="dimension-option" data-dim="5x5" onclick="selectDim(this)">5×5</div><div class="dimension-option" data-dim="6x6" onclick="selectDim(this)">6×6</div></div></div>
+                    <div class="form-group"><label>Difficulty</label><select id="level-difficulty"><option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="expert">Expert</option></select></div>
+                    <div class="form-group"><label>Points</label><input type="number" id="level-points" value="100" min="10" max="1000"></div>
+                    <div class="form-group"><label>Time Limit (sec, 0 = none)</label><input type="number" id="level-time" value="0" min="0" max="3600"></div>
+                    <div class="form-group"><label>Order Index</label><input type="number" id="level-order" value="0" min="0"></div>
+                    <div class="form-group"><label>Upload Image</label><input type="file" id="level-image" accept="image/*" required onchange="previewImage(this)"><div class="preview-area" id="image-preview"></div></div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">➕ Create Level</button>
+                </form>
+            </div>
+            <div id="tab-leaderboard" class="admin-section">
+                <h3>Leaderboard Control</h3>
+                <div style="margin-bottom:16px"><button class="btn btn-danger" onclick="resetLeaderboard()">🗑️ Reset All Scores</button></div>
+                <table class="levels-table">
+                    <thead><tr><th>Rank</th><th>User</th><th>Score</th><th>Levels</th><th>Visible</th></tr></thead>
+                    <tbody id="leaderboard-table-body"></tbody>
+                </table>
+            </div>
+            <div id="tab-users" class="admin-section">
+                <h3>All Users</h3>
+                <table class="levels-table">
+                    <thead><tr><th>ID</th><th>Username</th><th>Name</th><th>Score</th><th>Levels</th><th>Joined</th></tr></thead>
+                    <tbody id="users-table-body"></tbody>
+                </table>
+            </div>
+            <div id="tab-actions" class="admin-section">
+                <h3>Admin Actions Log</h3>
+                <div id="actions-log" class="actions-log"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_URL = window.location.origin;
+        let adminToken = null, tg = window.Telegram.WebApp, selectedDimension = '3x3';
+        tg.ready(); tg.expand();
+        async function initAdmin() {
+            const initData = tg.initData;
+            if (!initData) { showDenied(); return; }
+            try {
+                const res = await fetch(API_URL + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData }) });
+                if (!res.ok) { showDenied(); return; }
+                const data = await res.json();
+                adminToken = data.token;
+                document.getElementById('admin-username').textContent = 'Admin: @' + data.username;
+                document.getElementById('admin-loading').classList.remove('active');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('active');
+                loadDashboard(); loadLevels(); loadLeaderboard(); loadUsers(); loadActions();
+            } catch (err) { showDenied(); }
+        }
+        function showDenied() { document.getElementById('admin-loading').classList.remove('active'); document.getElementById('access-denied').classList.remove('hidden'); document.getElementById('access-denied').classList.add('active'); }
+        function goToGame() { window.location.href = '/'; }
+        function showTab(tab) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'dashboard') loadDashboard(); if (tab === 'levels') loadLevels(); if (tab === 'leaderboard') loadLeaderboard(); if (tab === 'users') loadUsers(); if (tab === 'actions') loadActions();
+        }
+        async function apiCall(endpoint, opts = {}) {
+            const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken, ...opts.headers };
+            const res = await fetch(API_URL + endpoint, { ...opts, headers });
+            if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'API Error'); }
+            return res.json();
+        }
+        async function loadDashboard() {
+            try {
+                const [users, levels, lb] = await Promise.all([apiCall('/api/admin/users'), apiCall('/api/admin/levels'), apiCall('/api/admin/leaderboard')]);
+                document.getElementById('stat-users').textContent = users.length;
+                document.getElementById('stat-levels').textContent = levels.length;
+                document.getElementById('stat-completed').textContent = lb.reduce((a, b) => a + (b.levels_completed || 0), 0);
+                document.getElementById('stat-active').textContent = users.filter(u => (new Date() - new Date(u.updated_at)) < 86400000).length;
+            } catch (e) { console.error(e); }
+        }
+        async function loadLevels() {
+            try {
+                const levels = await apiCall('/api/admin/levels');
+                document.getElementById('levels-table-body').innerHTML = levels.map(l => '<tr><td><img src="' + l.image_url + '" alt="' + l.name + '"></td><td>' + l.name + '</td><td>' + l.dimension + '</td><td>' + l.points + '</td><td><label class="toggle-switch"><input type="checkbox" ' + (l.is_active ? 'checked' : '') + ' onchange="toggleLevel(' + l.id + ', this.checked)"><span class="slider"></span></label></td><td><button class="btn btn-small btn-danger" onclick="deleteLevel(' + l.id + ')">🗑️</button></td></tr>').join('');
+            } catch (e) { console.error(e); }
+        }
+        async function toggleLevel(id, active) { try { await apiCall('/api/admin/levels/' + id, { method: 'PUT', body: JSON.stringify({ isActive: active }) }); tg.showAlert(active ? 'Activated!' : 'Deactivated!'); } catch (e) { tg.showAlert('Error: ' + e.message); } }
+        async function deleteLevel(id) { if (!confirm('Delete this level?')) return; try { await apiCall('/api/admin/levels/' + id, { method: 'DELETE' }); tg.showAlert('Deleted!'); loadLevels(); } catch (e) { tg.showAlert('Error: ' + e.message); } }
+        function selectDim(el) { document.querySelectorAll('.dimension-option').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); selectedDimension = el.dataset.dim; }
+        function previewImage(input) { const preview = document.getElementById('image-preview'); if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview">'; }; reader.readAsDataURL(input.files[0]); } }
+        async function addLevel(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('name', document.getElementById('level-name-input').value);
+            formData.append('description', document.getElementById('level-desc-input').value);
+            formData.append('dimension', selectedDimension);
+            formData.append('difficulty', document.getElementById('level-difficulty').value);
+            formData.append('points', document.getElementById('level-points').value);
+            formData.append('timeLimit', document.getElementById('level-time').value);
+            formData.append('orderIndex', document.getElementById('level-order').value);
+            formData.append('image', document.getElementById('level-image').files[0]);
+            try {
+                const res = await fetch(API_URL + '/api/admin/levels', { method: 'POST', headers: { 'Authorization': 'Bearer ' + adminToken }, body: formData });
+                if (!res.ok) throw new Error('Failed');
+                tg.showAlert('Level created!');
+                document.getElementById('add-level-form').reset();
+                document.getElementById('image-preview').innerHTML = '';
+                showTab('levels'); loadLevels();
+            } catch (e) { tg.showAlert('Error: ' + e.message); }
+            return false;
+        }
+        async function loadLeaderboard() {
+            try {
+                const data = await apiCall('/api/admin/leaderboard');
+                document.getElementById('leaderboard-table-body').innerHTML = data.map((e, i) => '<tr><td>' + e.rank + '</td><td><img src="' + (e.photo_url || 'https://via.placeholder.com/30') + '" style="width:30px;height:30px;border-radius:50%;vertical-align:middle;margin-right:8px;">' + (e.first_name || e.username || 'Anonymous') + '</td><td>' + e.total_score + '</td><td>' + e.levels_completed + '</td><td><label class="toggle-switch"><input type="checkbox" ' + (e.is_visible ? 'checked' : '') + ' onchange="toggleVis(' + e.user_id + ', this.checked)"><span class="slider"></span></label></td></tr>').join('');
+            } catch (e) { console.error(e); }
+        }
+        async function toggleVis(uid, vis) { try { await apiCall('/api/admin/leaderboard/' + uid + '/visibility', { method: 'PUT', body: JSON.stringify({ isVisible: vis }) }); } catch (e) { tg.showAlert('Error: ' + e.message); } }
+        async function resetLeaderboard() { if (!confirm('WARNING: Reset ALL scores?')) return; if (!confirm('This cannot be undone. Confirm?')) return; try { await apiCall('/api/admin/leaderboard/reset', { method: 'POST' }); tg.showAlert('Reset!'); loadLeaderboard(); loadDashboard(); } catch (e) { tg.showAlert('Error: ' + e.message); } }
+        async function loadUsers() {
+            try {
+                const users = await apiCall('/api/admin/users');
+                document.getElementById('users-table-body').innerHTML = users.map(u => '<tr><td>' + u.telegram_id + '</td><td>@' + (u.username || 'N/A') + '</td><td>' + (u.first_name || '') + ' ' + (u.last_name || '') + '</td><td>' + (u.total_score || 0) + '</td><td>' + (u.levels_completed || 0) + '</td><td>' + new Date(u.created_at).toLocaleDateString() + '</td></tr>').join('');
+            } catch (e) { console.error(e); }
+        }
+        async function loadActions() {
+            try {
+                const actions = await apiCall('/api/admin/actions');
+                document.getElementById('actions-log').innerHTML = actions.map(a => '<div class="action-item"><span class="time">' + new Date(a.created_at).toLocaleString() + '</span><br><span class="admin-name">@' + a.admin_username + '</span> <span style="color:var(--tg-theme-text-color,#000)">' + a.action + '</span> ' + (a.target_type ? 'on ' + a.target_type + ' #' + a.target_id : '') + '</div>').join('');
+            } catch (e) { console.error(e); }
+        }
+        initAdmin();
+    </script>
+</body>
+</html>

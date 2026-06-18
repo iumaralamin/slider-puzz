@@ -1,0 +1,13 @@
+{
+  "name": "telegram-puzzle-bot",
+  "version": "1.0.0",
+  "description": "Telegram Mini App - Sliding Image Puzzle Game",
+  "scripts": {
+    "install:all": "cd bot && npm install && cd ../web && npm install",
+    "dev:bot": "cd bot && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "start:bot": "cd bot && npm start",
+    "start:web": "cd web && npm start"
+  },
+  "engines": { "node": ">=18.0.0" }
+}

@@ -1,0 +1,339 @@
+const API_URL = window.location.origin;
+let tg = window.Telegram.WebApp;
+let currentUser = null;
+let currentLevel = null;
+let levels = [];
+let userProgress = [];
+let gameState = { board: [], emptyPos: { row: 0, col: 0 }, moves: 0, startTime: null, timerInterval: null };
+let isPreviewOpen = false;
+
+tg.ready();
+tg.expand();
+tg.setHeaderColor(tg.themeParams.bg_color || '#ffffff');
+tg.setBackgroundColor(tg.themeParams.bg_color || '#ffffff');
+
+async function initApp() {
+    const initData = tg.initData;
+    if (!initData) {
+        showScreen('main-menu');
+        document.getElementById('user-name').textContent = 'Guest';
+        document.getElementById('user-avatar').src = 'https://via.placeholder.com/56';
+        loadLevels();
+        return;
+    }
+    try {
+        const res = await fetch(API_URL + '/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData })
+        });
+        if (!res.ok) throw new Error('Auth failed');
+        const data = await res.json();
+        currentUser = data.user;
+        document.getElementById('user-name').textContent = currentUser.firstName || currentUser.username || 'Player';
+        document.getElementById('user-avatar').src = currentUser.photoUrl || 'https://via.placeholder.com/56';
+        if (currentUser.isAdmin) {
+            const menuButtons = document.querySelector('.menu-buttons');
+            const adminBtn = document.createElement('button');
+            adminBtn.className = 'btn btn-secondary';
+            adminBtn.innerHTML = '<span class="icon">⚙️</span> Admin Panel';
+            adminBtn.onclick = () => window.location.href = '/admin.html';
+            menuButtons.appendChild(adminBtn);
+        }
+        await loadUserProgress();
+        updateUserStats();
+        await loadLevels();
+        showScreen('main-menu');
+    } catch (err) {
+        console.error('Init error:', err);
+        showScreen('main-menu');
+    }
+}
+
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    if (screenId === 'leaderboard') loadLeaderboard();
+}
+
+function updateUserStats() {
+    const completed = userProgress.filter(p => p.completed).length;
+    const totalScore = userProgress.reduce((sum, p) => sum + (p.score || 0), 0);
+    document.getElementById('user-stats').textContent = `Score: ${totalScore} | Levels: ${completed}/${levels.length}`;
+}
+
+async function loadLevels() {
+    try {
+        const res = await fetch(API_URL + '/api/levels');
+        levels = await res.json();
+        renderLevels();
+    } catch (err) { console.error('Load levels error:', err); }
+}
+
+async function loadUserProgress() {
+    if (!currentUser) return;
+    try {
+        const res = await fetch(API_URL + '/api/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData: tg.initData })
+        });
+        userProgress = await res.json();
+    } catch (err) { console.error('Load progress error:', err); }
+}
+
+function renderLevels() {
+    const grid = document.getElementById('levels-grid');
+    grid.innerHTML = levels.map((level, index) => {
+        const progress = userProgress.find(p => p.level_id === level.id);
+        const completed = progress && progress.completed;
+        const isLocked = index > 0 && !userProgress.find(p => p.level_id === levels[index - 1].id && p.completed);
+        return `
+            <div class="level-card ${completed ? 'completed' : ''} ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startLevel(${level.id})`}">
+                <img src="${level.image_url}" alt="${level.name}">
+                <div class="level-card-info">
+                    <h3>${level.name}</h3>
+                    <p>${level.dimension} • ${level.difficulty}</p>
+                </div>
+                <div class="level-badge ${completed ? 'completed' : ''}">${completed ? '✓' : level.points + ' pts'}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function startLevel(levelId) {
+    currentLevel = levels.find(l => l.id === levelId);
+    if (!currentLevel) return;
+    document.getElementById('level-name').textContent = currentLevel.name;
+    showScreen('game-screen');
+    initGame(currentLevel);
+}
+
+function initGame(level) {
+    const [rows, cols] = level.dimension.split('x').map(Number);
+    const totalTiles = rows * cols;
+    gameState.moves = 0;
+    gameState.startTime = Date.now();
+    gameState.board = [];
+    document.getElementById('move-counter').textContent = 'Moves: 0';
+    document.getElementById('game-timer').textContent = '⏱️ 00:00';
+    clearInterval(gameState.timerInterval);
+    gameState.timerInterval = setInterval(updateTimer, 1000);
+    const board = document.getElementById('puzzle-board');
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    let tiles = [];
+    for (let i = 0; i < totalTiles - 1; i++) tiles.push({ num: i + 1, correctPos: i });
+    tiles.push({ num: 0, correctPos: totalTiles - 1 });
+    do { shuffleArray(tiles); } while (!isSolvable(tiles, rows, cols) || isSolved(tiles));
+    tiles.forEach((tile, index) => {
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const correctRow = Math.floor(tile.correctPos / cols);
+        const correctCol = tile.correctPos % cols;
+        const tileEl = document.createElement('div');
+        tileEl.className = 'puzzle-tile' + (tile.num === 0 ? ' empty' : '');
+        if (tile.num !== 0) {
+            tileEl.style.backgroundImage = `url(${level.image_url})`;
+            tileEl.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+            tileEl.style.backgroundPosition = `${correctCol * (100 / (cols - 1))}% ${correctRow * (100 / (rows - 1))}%`;
+            tileEl.innerHTML = `<span class="puzzle-tile-number">${tile.num}</span>`;
+            tileEl.onclick = () => moveTile(row, col);
+        }
+        board.appendChild(tileEl);
+        gameState.board.push({ ...tile, currentRow: row, currentCol: col, element: tileEl });
+        if (tile.num === 0) gameState.emptyPos = { row, col };
+    });
+    document.getElementById('preview-img').src = level.image_url;
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function isSolvable(tiles, rows, cols) {
+    let inversions = 0;
+    const flat = tiles.map(t => t.num).filter(n => n !== 0);
+    for (let i = 0; i < flat.length - 1; i++) {
+        for (let j = i + 1; j < flat.length; j++) {
+            if (flat[i] > flat[j]) inversions++;
+        }
+    }
+    if (cols % 2 === 1) return inversions % 2 === 0;
+    const emptyRow = Math.floor(tiles.findIndex(t => t.num === 0) / cols);
+    return (inversions + emptyRow) % 2 === 1;
+}
+
+function isSolved(tiles) {
+    return tiles.every((tile, i) => tile.correctPos === i);
+}
+
+function moveTile(row, col) {
+    const empty = gameState.emptyPos;
+    const isAdjacent = (Math.abs(row - empty.row) === 1 && col === empty.col) ||
+                       (Math.abs(col - empty.col) === 1 && row === empty.row);
+    if (!isAdjacent) return;
+    const tileIndex = gameState.board.findIndex(t => t.currentRow === row && t.currentCol === col);
+    const emptyIndex = gameState.board.findIndex(t => t.currentRow === empty.row && t.currentCol === empty.col);
+    if (tileIndex === -1 || emptyIndex === -1) return;
+    const tile = gameState.board[tileIndex];
+    const emptyTile = gameState.board[emptyIndex];
+    [tile.currentRow, emptyTile.currentRow] = [emptyTile.currentRow, tile.currentRow];
+    [tile.currentCol, emptyTile.currentCol] = [emptyTile.currentCol, tile.currentCol];
+    gameState.emptyPos = { row, col };
+    gameState.moves++;
+    document.getElementById('move-counter').textContent = 'Moves: ' + gameState.moves;
+    renderBoard();
+    if (checkWin()) handleWin();
+}
+
+function renderBoard() {
+    const board = document.getElementById('puzzle-board');
+    board.innerHTML = '';
+    const [rows, cols] = currentLevel.dimension.split('x').map(Number);
+    const sorted = [...gameState.board].sort((a, b) => {
+        if (a.currentRow !== b.currentRow) return a.currentRow - b.currentRow;
+        return a.currentCol - b.currentCol;
+    });
+    sorted.forEach(tile => {
+        const correctRow = Math.floor(tile.correctPos / cols);
+        const correctCol = tile.correctPos % cols;
+        const isCorrect = tile.currentRow === correctRow && tile.currentCol === correctCol;
+        const tileEl = document.createElement('div');
+        tileEl.className = 'puzzle-tile' + (tile.num === 0 ? ' empty' : '') + (isCorrect && tile.num !== 0 ? ' correct' : '');
+        if (tile.num !== 0) {
+            tileEl.style.backgroundImage = `url(${currentLevel.image_url})`;
+            tileEl.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+            tileEl.style.backgroundPosition = `${correctCol * (100 / (cols - 1))}% ${correctRow * (100 / (rows - 1))}%`;
+            tileEl.innerHTML = `<span class="puzzle-tile-number">${tile.num}</span>`;
+            tileEl.onclick = () => moveTile(tile.currentRow, tile.currentCol);
+        }
+        board.appendChild(tileEl);
+    });
+}
+
+function checkWin() {
+    return gameState.board.every(tile => {
+        const correctRow = Math.floor(tile.correctPos / currentLevel.dimension.split('x').map(Number)[1]);
+        const correctCol = tile.correctPos % currentLevel.dimension.split('x').map(Number)[1];
+        return tile.currentRow === correctRow && tile.currentCol === correctCol;
+    });
+}
+
+function handleWin() {
+    clearInterval(gameState.timerInterval);
+    const timeTaken = Math.floor((Date.now() - gameState.startTime) / 1000);
+    const [rows, cols] = currentLevel.dimension.split('x').map(Number);
+    const totalTiles = rows * cols;
+    const baseScore = currentLevel.points;
+    const timeBonus = Math.max(0, 300 - timeTaken);
+    const moveBonus = Math.max(0, totalTiles * 3 - gameState.moves);
+    const score = Math.floor(baseScore + timeBonus + moveBonus);
+    document.getElementById('complete-time').textContent = formatTime(timeTaken);
+    document.getElementById('complete-moves').textContent = gameState.moves;
+    document.getElementById('complete-score').textContent = score;
+    document.getElementById('level-complete').classList.remove('hidden');
+    if (currentUser) saveProgress(currentLevel.id, gameState.moves, timeTaken, score, true);
+    tg.HapticFeedback.notificationOccurred('success');
+}
+
+async function saveProgress(levelId, moves, timeTaken, score, completed) {
+    try {
+        await fetch(API_URL + '/api/progress/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData: tg.initData, levelId, moves, timeTaken, score, completed })
+        });
+        await loadUserProgress();
+        updateUserStats();
+    } catch (err) { console.error('Save progress error:', err); }
+}
+
+function nextLevel() {
+    document.getElementById('level-complete').classList.add('hidden');
+    const currentIndex = levels.findIndex(l => l.id === currentLevel.id);
+    if (currentIndex < levels.length - 1) {
+        startLevel(levels[currentIndex + 1].id);
+    } else {
+        showScreen('main-menu');
+        tg.showAlert('🎉 Congratulations! You completed all levels!');
+    }
+}
+
+function quitGame() {
+    clearInterval(gameState.timerInterval);
+    showScreen('levels-screen');
+}
+
+function updateTimer() {
+    const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+    document.getElementById('game-timer').textContent = '⏱️ ' + formatTime(elapsed);
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+}
+
+function togglePreview() {
+    isPreviewOpen = !isPreviewOpen;
+    document.getElementById('preview-image').classList.toggle('hidden', !isPreviewOpen);
+}
+
+function shuffleBoard() {
+    const [rows, cols] = currentLevel.dimension.split('x').map(Number);
+    const totalTiles = rows * cols;
+    let tiles = gameState.board.map(t => ({ num: t.num, correctPos: t.correctPos }));
+    do { shuffleArray(tiles); } while (!isSolvable(tiles, rows, cols) || isSolved(tiles));
+    tiles.forEach((tile, index) => {
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const boardTile = gameState.board.find(t => t.num === tile.num);
+        boardTile.currentRow = row;
+        boardTile.currentCol = col;
+        if (tile.num === 0) gameState.emptyPos = { row, col };
+    });
+    gameState.moves = 0;
+    document.getElementById('move-counter').textContent = 'Moves: 0';
+    renderBoard();
+}
+
+function resetGame() {
+    if (currentLevel) initGame(currentLevel);
+}
+
+async function loadLeaderboard() {
+    try {
+        const res = await fetch(API_URL + '/api/leaderboard');
+        const data = await res.json();
+        const list = document.getElementById('leaderboard-list');
+        if (data.length === 0) {
+            list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--tg-theme-hint-color,#999)">No scores yet. Be the first!</div>';
+            return;
+        }
+        list.innerHTML = data.map((player, i) => {
+            const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+            return `
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank ${rankClass}">${medal}</div>
+                    <img class="leaderboard-avatar" src="${player.photo_url || 'https://via.placeholder.com/44'}" alt="${player.first_name || 'Player'}">
+                    <div class="leaderboard-info">
+                        <h4>${player.first_name || player.username || 'Anonymous'}</h4>
+                        <p>${player.levels_completed} levels completed</p>
+                    </div>
+                    <div class="leaderboard-score">
+                        <div class="score">${player.total_score}</div>
+                        <div class="levels">pts</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) { console.error('Leaderboard error:', err); }
+}
+
+initApp();
