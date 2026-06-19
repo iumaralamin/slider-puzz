@@ -419,7 +419,7 @@ function closeLevelComplete() {
 
 function quitGame() {
     clearInterval(gameState.timerInterval);
-    showScreen('levels-screen');
+    showScreen('main-menu');
 }
 
 function updateTimer() {
