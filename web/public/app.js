@@ -206,23 +206,41 @@ function renderLevels() {
         grid.innerHTML = '<div class="empty-state">No levels available yet. Please check back soon.</div>';
         return;
     }
-    grid.innerHTML = levels.map((level, index) => {
-        const progress = userProgress.find(p => p.level_id === level.id);
-        const completed = progress && progress.completed;
-        const isLocked = index > 0 && !userProgress.find(p => p.level_id === levels[index - 1].id && p.completed);
-        const imageUrl = getImageUrl(level.image_url);
-        return `
-            <div class="level-card ${completed ? 'completed' : ''} ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startLevel(${level.id})`}">
-                <img src="${imageUrl}" alt="${level.name}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
-                <div class="level-card-info">
-                    <h3>${level.name}</h3>
-                    <p>${level.dimension} • ${level.difficulty}</p>
-                    ${progress && !completed ? `<div style="margin-top:8px"><button class="btn btn-small" onclick="startLevel(${level.id})">Continue</button></div>` : ''}
+    const difficultyOrder = ['easy', 'medium', 'hard', 'expert'];
+    const difficultyLabels = { easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Expert' };
+    const grouped = difficultyOrder.map(diff => ({
+        difficulty: diff,
+        label: difficultyLabels[diff] || diff,
+        levels: levels.filter(level => (level.difficulty || 'medium').toLowerCase() === diff)
+    })).filter(group => group.levels.length > 0);
+
+    const sections = grouped.map(group => {
+        const cards = group.levels.map((level, index) => {
+            const levelIndex = levels.findIndex(l => l.id === level.id);
+            const progress = userProgress.find(p => p.level_id === level.id);
+            const completed = progress && progress.completed;
+            const isLocked = levelIndex > 0 && !userProgress.find(p => p.level_id === levels[levelIndex - 1].id && p.completed);
+            const imageUrl = getImageUrl(level.image_url);
+            return `
+                <div class="level-card ${completed ? 'completed' : ''} ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startLevel(${level.id})`}">
+                    <img src="${imageUrl}" alt="${level.name}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                    <div class="level-card-info">
+                        <h3>${level.name}</h3>
+                        <p>${level.dimension} • ${level.difficulty}</p>
+                        ${progress && !completed ? `<div style="margin-top:8px"><button class="btn btn-small" onclick="startLevel(${level.id})">Continue</button></div>` : ''}
+                    </div>
+                    <div class="level-badge ${completed ? 'completed' : ''}">${completed ? '<span class="material-symbols-outlined">check_circle</span>' : level.points + ' pts'}</div>
                 </div>
-                <div class="level-badge ${completed ? 'completed' : ''}">${completed ? '<span class="material-symbols-outlined">check_circle</span>' : level.points + ' pts'}</div>
-            </div>
+            `;
+        }).join('');
+        return `
+            <section class="difficulty-section">
+                <div class="difficulty-heading">${group.label}</div>
+                <div class="difficulty-grid">${cards}</div>
+            </section>
         `;
-    }).join('');
+    });
+    grid.innerHTML = sections.join('');
 }
 
 function startLevel(levelId) {

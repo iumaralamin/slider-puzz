@@ -67,6 +67,9 @@ body {
 .game-info { display: flex; gap: 12px; font-size: 13px; color: var(--tg-theme-hint-color, #666); }
 
 .levels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 8px 0; }
+.difficulty-section { margin-bottom: 24px; }
+.difficulty-heading { font-size: 16px; font-weight: 700; color: var(--tg-theme-text-color, #0f3d24); margin-bottom: 12px; padding: 0 4px; }
+.difficulty-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .level-card { background: var(--tg-theme-secondary-bg-color, #f5f5f5); border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
 .level-card:active { transform: scale(0.95); }
 .level-card.completed { border: 2px solid #22c55e; }
