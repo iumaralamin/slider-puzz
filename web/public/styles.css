@@ -33,7 +33,7 @@ body {
 
 .menu-header { padding: 16px 0; border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #eee); margin-bottom: 24px; }
 .user-info { display: flex; align-items: center; gap: 12px; }
-.avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--tg-theme-button-color, #2481cc); }
+.avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--tg-theme-button-color, #1f8a4b); }
 .user-details h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
 .user-details p { font-size: 13px; color: var(--tg-theme-hint-color, #999); }
 .menu-content { text-align: center; padding: 32px 16px; }
@@ -43,13 +43,13 @@ body {
 
 .btn { padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
 .btn:active { transform: scale(0.97); }
-.btn-primary { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+.btn-primary { background: var(--tg-theme-button-color, #1f8a4b); color: var(--tg-theme-button-text-color, #fff); }
 .btn-primary:hover { opacity: 0.9; }
 .btn-secondary { background: var(--tg-theme-secondary-bg-color, #f0f0f0); color: var(--tg-theme-text-color, #000); }
 .btn-secondary:hover { background: var(--tg-theme-hint-color, #ddd); }
 .btn-danger { background: #ef4444; color: #fff; }
 .btn-small { padding: 8px 14px; font-size: 13px; border-radius: 8px; width: auto; }
-.btn-back { background: none; border: none; color: var(--tg-theme-link-color, #2481cc); font-size: 15px; cursor: pointer; padding: 8px 0; display: flex; align-items: center; gap: 6px; }
+.btn-back { background: none; border: none; color: var(--tg-theme-link-color, #1f8a4b); font-size: 15px; cursor: pointer; padding: 8px 0; display: flex; align-items: center; gap: 6px; }
 .icon { font-size: 20px; }
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
@@ -75,7 +75,7 @@ body {
 .level-card-info { padding: 12px; }
 .level-card-info h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
 .level-card-info p { font-size: 12px; color: var(--tg-theme-hint-color, #666); }
-.level-badge { position: absolute; top: 8px; right: 8px; background: var(--tg-theme-button-color, #2481cc); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.level-badge { position: absolute; top: 8px; right: 8px; background: var(--tg-theme-button-color, #1f8a4b); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 .level-badge.completed { background: #22c55e; }
 
 .game-container { display: flex; justify-content: center; align-items: center; padding: 16px 0; position: relative; }

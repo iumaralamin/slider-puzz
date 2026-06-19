@@ -146,8 +146,10 @@ function getImageUrl(url) {
     const cleaned = url.trim();
     if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) return cleaned;
     if (cleaned.startsWith('//')) return window.location.protocol + cleaned;
-    if (cleaned.startsWith('/')) return API_URL + cleaned;
-    return API_URL + '/' + cleaned;
+    const base = API_URL.replace(/\/$/, '');
+    if (cleaned.startsWith('/')) return base + cleaned;
+    if (cleaned.startsWith('uploads/')) return base + '/' + cleaned;
+    return base + '/' + cleaned;
 }
 
 function renderLevels() {

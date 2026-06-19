@@ -10,7 +10,7 @@
     <style>
         .admin-nav { display: flex; gap: 8px; padding: 10px; background: var(--tg-theme-bg-color, #fff); border-bottom: 1px solid var(--tg-theme-hint-color, #ccc); overflow-x: auto; }
         .admin-nav button { padding: 8px 16px; border: none; border-radius: 8px; background: var(--tg-theme-secondary-bg-color, #f0f0f0); color: var(--tg-theme-text-color, #000); cursor: pointer; white-space: nowrap; font-size: 14px; }
-        .admin-nav button.active { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+        .admin-nav button.active { background: var(--tg-theme-button-color, #1f8a4b); color: var(--tg-theme-button-text-color, #fff); }
         .admin-section { display: none; padding: 16px; }
         .admin-section.active { display: block; }
         .form-group { margin-bottom: 16px; }
@@ -33,12 +33,12 @@
         .actions-log { max-height: 400px; overflow-y: auto; }
         .action-item { padding: 10px; border-bottom: 1px solid var(--tg-theme-hint-color, #eee); font-size: 13px; }
         .action-item .time { color: var(--tg-theme-hint-color, #999); font-size: 11px; }
-        .action-item .admin-name { font-weight: 600; color: var(--tg-theme-button-color, #2481cc); }
+        .action-item .admin-name { font-weight: 600; color: var(--tg-theme-button-color, #1f8a4b); }
         .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--tg-theme-button-color, #2481cc); }
+        input:checked + .slider { background-color: var(--tg-theme-button-color, #1f8a4b); }
         input:checked + .slider:before { transform: translateX(20px); }
         .access-denied { text-align: center; padding: 60px 20px; }
         .access-denied h2 { font-size: 48px; margin-bottom: 16px; }
