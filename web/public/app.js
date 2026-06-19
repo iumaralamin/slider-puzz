@@ -10,9 +10,21 @@ let isPreviewOpen = false;
 if (tg) {
     tg.ready();
     tg.expand();
-    const bgColor = tg.themeParams?.bg_color || '#ffffff';
-    tg.setHeaderColor(bgColor);
-    tg.setBackgroundColor(bgColor);
+    // Force the app to use the green theme regardless of Telegram's theme params
+    const forcedBg = '#eef7ed';
+    const forcedPrimary = '#1f8a4b';
+    // update CSS variables to ensure all UI elements use the green theme
+    try {
+        document.documentElement.style.setProperty('--tg-theme-bg-color', forcedBg);
+        document.documentElement.style.setProperty('--tg-theme-text-color', '#0f3d24');
+        document.documentElement.style.setProperty('--tg-theme-hint-color', '#4f7c5d');
+        document.documentElement.style.setProperty('--tg-theme-link-color', forcedPrimary);
+        document.documentElement.style.setProperty('--tg-theme-button-color', forcedPrimary);
+        document.documentElement.style.setProperty('--tg-theme-button-text-color', '#ffffff');
+        document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#e6f4e7');
+    } catch (e) { console.warn('Could not set CSS vars:', e); }
+    // Set Telegram header/background to match forced green palette
+    try { tg.setHeaderColor(forcedPrimary); tg.setBackgroundColor(forcedBg); } catch (e) { /* ignore */ }
 }
 
 async function initApp() {
