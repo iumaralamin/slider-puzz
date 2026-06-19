@@ -124,21 +124,31 @@
         let adminToken = null, tg = window.Telegram?.WebApp || null, selectedDimension = '3x3';
         if (tg) { tg.ready(); tg.expand(); }
         async function initAdmin() {
-            const initData = tg.initData;
-            if (!initData) { showDenied(); return; }
+            const initData = tg?.initData;
+            if (!initData) { console.warn('No initData'); showDenied('No Telegram init data'); return; }
             try {
+                console.log('Calling /api/admin/login with initData...');
                 const res = await fetch(API_URL + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData }) });
-                if (!res.ok) { showDenied(); return; }
+                console.log('Response status:', res.status);
                 const data = await res.json();
+                console.log('Response data:', data);
+                if (!res.ok) { console.error('Login failed:', data.error); showDenied(data.error || 'Login failed'); return; }
                 adminToken = data.token;
+                console.log('Admin token received, initializing dashboard...');
                 document.getElementById('admin-username').textContent = 'Admin: @' + data.username;
                 document.getElementById('admin-loading').classList.remove('active');
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-panel').classList.add('active');
                 loadDashboard(); loadLevels(); loadLeaderboard(); loadUsers(); loadActions();
-            } catch (err) { showDenied(); }
+            } catch (err) { console.error('Admin init error:', err); showDenied(err.message); }
         }
-        function showDenied() { document.getElementById('admin-loading').classList.remove('active'); document.getElementById('access-denied').classList.remove('hidden'); document.getElementById('access-denied').classList.add('active'); }
+        function showDenied(reason = 'Access Denied') { 
+            console.error('Showing access denied with reason:', reason);
+            document.getElementById('admin-loading').classList.remove('active'); 
+            document.getElementById('access-denied').classList.remove('hidden'); 
+            document.getElementById('access-denied').classList.add('active');
+            document.querySelector('.access-denied p').textContent = reason || 'You are not authorized to access the admin panel.';
+        }
         function goToGame() { window.location.href = '/'; }
         function showTab(e, tab) {
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
@@ -150,8 +160,13 @@
         }
         async function apiCall(endpoint, opts = {}) {
             const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken, ...opts.headers };
+            console.log('API call:', endpoint, 'with token:', adminToken?.substring(0, 20) + '...');
             const res = await fetch(API_URL + endpoint, { ...opts, headers });
-            if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'API Error'); }
+            if (!res.ok) { 
+                const err = await res.json(); 
+                console.error('API error:', endpoint, res.status, err);
+                throw new Error(err.error || `API Error: ${res.status}`); 
+            }
             return res.json();
         }
         async function loadDashboard() {
