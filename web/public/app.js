@@ -95,6 +95,9 @@ function showScreen(screenId) {
     const screen = document.getElementById(screenId);
     if (!screen) return;
     screen.classList.add('active');
+    if (screenId === 'levels' && levels.length === 0) {
+        loadLevels();
+    }
     if (screenId === 'leaderboard') loadLeaderboard();
 }
 
@@ -105,11 +108,16 @@ function updateUserStats() {
 }
 
 async function loadLevels() {
+    const grid = document.getElementById('levels-grid');
+    if (grid) grid.innerHTML = '<div class="empty-state">Loading levels...</div>';
     try {
         const res = await fetch(API_URL + '/api/levels');
         levels = await res.json();
         renderLevels();
-    } catch (err) { console.error('Load levels error:', err); }
+    } catch (err) {
+        console.error('Load levels error:', err);
+        if (grid) grid.innerHTML = '<div class="empty-state">Unable to load levels. Please try again.</div>';
+    }
 }
 
 async function loadUserProgress() {
@@ -128,6 +136,11 @@ async function loadUserProgress() {
 
 function renderLevels() {
     const grid = document.getElementById('levels-grid');
+    if (!grid) return;
+    if (levels.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No levels available yet. Please check back soon.</div>';
+        return;
+    }
     grid.innerHTML = levels.map((level, index) => {
         const progress = userProgress.find(p => p.level_id === level.id);
         const completed = progress && progress.completed;
