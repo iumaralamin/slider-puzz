@@ -117,7 +117,7 @@ function showScreen(screenId) {
 function updateUserStats() {
     const completed = userProgress.filter(p => p.completed).length;
     const totalScore = userProgress.reduce((sum, p) => sum + (p.score || 0), 0);
-    document.getElementById('user-stats').textContent = `Score: ${totalScore} | Levels: ${completed}/${levels.length}`;
+    document.getElementById('user-stats').textContent = `Score: ${totalScore} | Completed: ${completed}`;
 }
 
 async function loadLevels() {
