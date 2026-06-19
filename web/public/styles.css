@@ -20,7 +20,7 @@ body {
 .hidden { display: none !important; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-#loading-screen { display: flex; align-items: center; justify-content: center; flex-direction: column; height: 100vh; }
+#loading-screen { display: none; align-items: center; justify-content: center; flex-direction: column; height: 100vh; }
 #loading-screen.active { display: flex; }
 .puzzle-loader { display: grid; grid-template-columns: repeat(2, 40px); grid-template-rows: repeat(2, 40px); gap: 4px; margin-bottom: 20px; }
 .puzzle-loader .tile { background: var(--tg-theme-button-color, #2481cc); border-radius: 6px; animation: pulse 1s ease infinite; }
