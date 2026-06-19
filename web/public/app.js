@@ -269,7 +269,7 @@ function renderBoard() {
         const tileEl = document.createElement('div');
         tileEl.className = 'puzzle-tile' + (tile.num === 0 ? ' empty' : '') + (isCorrect && tile.num !== 0 ? ' correct' : '');
         if (tile.num !== 0) {
-            tileEl.style.backgroundImage = `url(${currentLevel.image_url})`;
+            tileEl.style.backgroundImage = `url(${getImageUrl(currentLevel.image_url)})`;
             tileEl.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
             tileEl.style.backgroundPosition = `${correctCol * (100 / (cols - 1))}% ${correctRow * (100 / (rows - 1))}%`;
             tileEl.innerHTML = `<span class="puzzle-tile-number">${tile.num}</span>`;
