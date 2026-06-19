@@ -284,17 +284,19 @@ app.post('/api/admin/login', async (req, res) => {
         const hash = params.get('hash');
         params.delete('hash');
         const dataCheckString = Array.from(params.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`).join('\n');
-        const secretKey = crypto.createHash('sha256').update(BOT_TOKEN).digest();
+        const secretKey = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
         const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
         if (computedHash !== hash) return res.status(401).json({ error: 'Invalid init data' });
         const userData = JSON.parse(params.get('user'));
         const username = normalizeUsername(userData.username);
         const userId = Number(userData.id || userData.user_id || userData.telegram_id);
+        console.log('[ADMIN LOGIN] userData:', { id: userData.id, username: userData.username }, 'normalized username:', username, 'ADMIN_USERNAMES:', ADMIN_USERNAMES, 'ADMIN_USER_IDS:', ADMIN_USER_IDS);
         const isAdmin = (username && ADMIN_USERNAMES.includes(username)) || ADMIN_USER_IDS.includes(userId);
+        console.log('[ADMIN LOGIN] isAdmin check:', { username, userId, isAdmin, usernameMatch: username && ADMIN_USERNAMES.includes(username), idMatch: ADMIN_USER_IDS.includes(userId) });
         if (!isAdmin) return res.status(403).json({ error: 'Not admin' });
         const token = jwt.sign({ userId: userId || userData.id, username: userData.username || '', telegramId: userId || userData.id }, JWT_SECRET, { expiresIn: '24h' });
         res.json({ token, username: userData.username });
-    } catch (err) { res.status(500).json({ error: 'Login failed' }); }
+    } catch (err) { console.error('[ADMIN LOGIN] Error:', err); res.status(500).json({ error: 'Login failed' }); }
 });
 
 app.get('/api/admin/levels', verifyAdmin, async (req, res) => {
