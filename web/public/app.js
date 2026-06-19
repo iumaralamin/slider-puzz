@@ -87,6 +87,7 @@ async function initApp() {
             .then(() => {
                 console.log('[INIT] Data loaded');
                 updateUserStats();
+                updateContinueButton();
             })
             .catch(err => console.error('[INIT] Background load error:', err));
 
@@ -164,6 +165,40 @@ function getImageUrl(url) {
     return base + '/' + cleaned;
 }
 
+function getContinueLevelId() {
+    // If user has an in-progress level (saved progress but not completed), continue that first
+    const inProgress = userProgress.find(p => !p.completed);
+    if (inProgress) return inProgress.level_id;
+    // Otherwise, pick the first unlocked level that is not completed
+    for (let i = 0; i < levels.length; i++) {
+        const lvl = levels[i];
+        const prog = userProgress.find(p => p.level_id === lvl.id);
+        const prevCompleted = i === 0 ? true : (userProgress.find(p => p.level_id === levels[i - 1].id)?.completed);
+        if (prevCompleted && !(prog && prog.completed)) return lvl.id;
+    }
+    return null;
+}
+
+function updateContinueButton() {
+    const menu = document.querySelector('.menu-buttons');
+    if (!menu) return;
+    let btn = document.getElementById('btn-continue');
+    const targetId = getContinueLevelId();
+    if (!targetId) {
+        if (btn) btn.remove();
+        return;
+    }
+    if (!btn) {
+        btn = document.createElement('button');
+        btn.id = 'btn-continue';
+        btn.className = 'btn btn-primary';
+        menu.insertBefore(btn, menu.firstChild);
+    }
+    const lvl = levels.find(l => l.id === targetId);
+    btn.innerHTML = `<span class="material-symbols-outlined icon">play_arrow</span> Continue: ${lvl ? lvl.name : 'Level'}`;
+    btn.onclick = () => startLevel(targetId);
+}
+
 function renderLevels() {
     const grid = document.getElementById('levels-grid');
     if (!grid) return;
@@ -182,6 +217,7 @@ function renderLevels() {
                 <div class="level-card-info">
                     <h3>${level.name}</h3>
                     <p>${level.dimension} • ${level.difficulty}</p>
+                    ${progress && !completed ? `<div style="margin-top:8px"><button class="btn btn-small" onclick="startLevel(${level.id})">Continue</button></div>` : ''}
                 </div>
                 <div class="level-badge ${completed ? 'completed' : ''}">${completed ? '<span class="material-symbols-outlined">check_circle</span>' : level.points + ' pts'}</div>
             </div>
