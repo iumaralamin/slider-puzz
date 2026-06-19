@@ -244,7 +244,7 @@ function renderLevels() {
 }
 
 function startLevel(levelId) {
-    currentLevel = levels.find(l => l.id === levelId);
+    currentLevel = levels.find(l => String(l.id) === String(levelId));
     if (!currentLevel) return;
     document.getElementById('level-name').textContent = currentLevel.name;
     showScreen('game-screen');
@@ -257,18 +257,23 @@ function initGame(level) {
     gameState.moves = 0;
     gameState.startTime = Date.now();
     gameState.board = [];
+    gameState.boardImageUrl = getImageUrl(level.image_url);
     document.getElementById('move-counter').textContent = 'Moves: 0';
     document.getElementById('game-timer').innerHTML = '<span class="material-symbols-outlined">timer</span> 00:00';
     clearInterval(gameState.timerInterval);
     gameState.timerInterval = setInterval(updateTimer, 1000);
     const board = document.getElementById('puzzle-board');
+    board.innerHTML = '';
     board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    isPreviewOpen = false;
+    const previewContainer = document.getElementById('preview-image');
+    if (previewContainer) previewContainer.classList.add('hidden');
     let tiles = [];
     for (let i = 0; i < totalTiles - 1; i++) tiles.push({ num: i + 1, correctPos: i });
     tiles.push({ num: 0, correctPos: totalTiles - 1 });
     do { shuffleArray(tiles); } while (!isSolvable(tiles, rows, cols) || isSolved(tiles));
-    const boardImageUrl = getImageUrl(level.image_url);
+    const boardImageUrl = gameState.boardImageUrl || getImageUrl(level.image_url);
     tiles.forEach((tile, index) => {
         const row = Math.floor(index / cols);
         const col = index % cols;
@@ -289,7 +294,7 @@ function initGame(level) {
     });
     const previewImage = document.getElementById('preview-img');
     if (previewImage) {
-        previewImage.src = getImageUrl(level.image_url);
+        previewImage.src = gameState.boardImageUrl;
         previewImage.onerror = () => previewImage.src = 'https://via.placeholder.com/300?text=No+Preview';
     }
 }
@@ -352,7 +357,7 @@ function renderBoard() {
         const tileEl = document.createElement('div');
         tileEl.className = 'puzzle-tile' + (tile.num === 0 ? ' empty' : '') + (isCorrect && tile.num !== 0 ? ' correct' : '');
         if (tile.num !== 0) {
-            tileEl.style.backgroundImage = `url(${getImageUrl(currentLevel.image_url)})`;
+            tileEl.style.backgroundImage = `url(${gameState.boardImageUrl || getImageUrl(currentLevel.image_url)})`;
             tileEl.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
             tileEl.style.backgroundPosition = `${correctCol * (100 / (cols - 1))}% ${correctRow * (100 / (rows - 1))}%`;
             tileEl.innerHTML = `<span class="puzzle-tile-number">${tile.num}</span>`;
