@@ -394,6 +394,11 @@ function nextLevel() {
     }
 }
 
+function closeLevelComplete() {
+    const modal = document.getElementById('level-complete');
+    if (modal) modal.classList.add('hidden');
+}
+
 function quitGame() {
     clearInterval(gameState.timerInterval);
     showScreen('levels-screen');
