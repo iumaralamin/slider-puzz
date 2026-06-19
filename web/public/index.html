@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sliding Puzzle</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,700,0,0" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -32,25 +33,25 @@
                 <h1 class="game-title">Sliding Puzzle</h1>
                 <p class="subtitle">Arrange the tiles to complete the image!</p>
                 <div class="menu-buttons">
-                    <button class="btn btn-primary" onclick="showScreen('levels')"><span class="icon">🎮</span> Play Game</button>
-                    <button class="btn btn-secondary" onclick="showScreen('leaderboard')"><span class="icon">🏆</span> Leaderboard</button>
-                    <button class="btn btn-secondary" onclick="showScreen('how-to-play')"><span class="icon">❓</span> How to Play</button>
+                    <button class="btn btn-primary" onclick="showScreen('levels')"><span class="material-symbols-outlined icon">play_arrow</span> Play Game</button>
+                    <button class="btn btn-secondary" onclick="showScreen('leaderboard')"><span class="material-symbols-outlined icon">leaderboard</span> Leaderboard</button>
+                    <button class="btn btn-secondary" onclick="showScreen('how-to-play')"><span class="material-symbols-outlined icon">help_outline</span> How to Play</button>
                 </div>
             </div>
         </div>
         <div id="levels" class="screen">
             <div class="screen-header">
-                <button class="btn-back" onclick="showScreen('main-menu')">← Back</button>
+                <button class="btn-back" onclick="showScreen('main-menu')"><span class="material-symbols-outlined">arrow_back</span> Back</button>
                 <h2>Select Level</h2>
             </div>
             <div id="levels-grid" class="levels-grid"></div>
         </div>
         <div id="game-screen" class="screen">
             <div class="screen-header">
-                <button class="btn-back" onclick="quitGame()">← Quit</button>
+                <button class="btn-back" onclick="quitGame()"><span class="material-symbols-outlined">arrow_back</span> Quit</button>
                 <div class="game-info">
                     <span id="level-name">Level 1</span>
-                    <span id="game-timer">⏱️ 00:00</span>
+                    <span id="game-timer"><span class="material-symbols-outlined">timer</span> 00:00</span>
                     <span id="move-counter">Moves: 0</span>
                 </div>
             </div>
@@ -58,44 +59,44 @@
                 <div id="puzzle-board" class="puzzle-board"></div>
                 <div id="preview-image" class="preview-image hidden">
                     <img id="preview-img" src="" alt="Preview">
-                    <button class="btn-close-preview" onclick="togglePreview()">✕</button>
+                    <button class="btn-close-preview" onclick="togglePreview()"><span class="material-symbols-outlined">close</span></button>
                 </div>
             </div>
             <div class="game-controls">
-                <button class="btn btn-small" onclick="togglePreview()">👁️ Preview</button>
-                <button class="btn btn-small" onclick="shuffleBoard()">🔀 Shuffle</button>
-                <button class="btn btn-small" onclick="resetGame()">🔄 Reset</button>
+                <button class="btn btn-small" onclick="togglePreview()"><span class="material-symbols-outlined">visibility</span> Preview</button>
+                <button class="btn btn-small" onclick="shuffleBoard()"><span class="material-symbols-outlined">shuffle</span> Shuffle</button>
+                <button class="btn btn-small" onclick="resetGame()"><span class="material-symbols-outlined">restart_alt</span> Reset</button>
             </div>
         </div>
         <div id="leaderboard" class="screen">
             <div class="screen-header">
-                <button class="btn-back" onclick="showScreen('main-menu')">← Back</button>
-                <h2>🏆 Leaderboard</h2>
+                <button class="btn-back" onclick="showScreen('main-menu')"><span class="material-symbols-outlined">arrow_back</span> Back</button>
+                <h2><span class="material-symbols-outlined">leaderboard</span> Leaderboard</h2>
             </div>
             <div id="leaderboard-list" class="leaderboard-list"></div>
         </div>
         <div id="how-to-play" class="screen">
             <div class="screen-header">
-                <button class="btn-back" onclick="showScreen('main-menu')">← Back</button>
+                <button class="btn-back" onclick="showScreen('main-menu')"><span class="material-symbols-outlined">arrow_back</span> Back</button>
                 <h2>How to Play</h2>
             </div>
             <div class="instructions">
-                <div class="instruction-item"><span class="icon">🎯</span><p><strong>Goal:</strong> Arrange scrambled image tiles in correct order.</p></div>
-                <div class="instruction-item"><span class="icon">👆</span><p><strong>Controls:</strong> Tap a tile adjacent to empty space to slide it.</p></div>
-                <div class="instruction-item"><span class="icon">🏆</span><p><strong>Scoring:</strong> Fewer moves and faster time = higher score!</p></div>
-                <div class="instruction-item"><span class="icon">⭐</span><p><strong>Stars:</strong> Complete levels to unlock harder puzzles.</p></div>
+                <div class="instruction-item"><span class="material-symbols-outlined icon">track_changes</span><p><strong>Goal:</strong> Arrange scrambled image tiles in correct order.</p></div>
+                <div class="instruction-item"><span class="material-symbols-outlined icon">touch_app</span><p><strong>Controls:</strong> Tap a tile adjacent to empty space to slide it.</p></div>
+                <div class="instruction-item"><span class="material-symbols-outlined icon">leaderboard</span><p><strong>Scoring:</strong> Fewer moves and faster time = higher score!</p></div>
+                <div class="instruction-item"><span class="material-symbols-outlined icon">grade</span><p><strong>Stars:</strong> Complete levels to unlock harder puzzles.</p></div>
             </div>
         </div>
         <div id="level-complete" class="modal hidden">
             <div class="modal-content">
-                <h2>🎉 Level Complete!</h2>
+                <h2><span class="material-symbols-outlined">celebration</span> Level Complete!</h2>
                 <div class="stats">
-                    <p>⏱️ Time: <span id="complete-time">00:00</span></p>
-                    <p>👆 Moves: <span id="complete-moves">0</span></p>
-                    <p>⭐ Score: <span id="complete-score">0</span></p>
+                    <p><span class="material-symbols-outlined">timer</span> Time: <span id="complete-time">00:00</span></p>
+                    <p><span class="material-symbols-outlined">touch_app</span> Moves: <span id="complete-moves">0</span></p>
+                    <p><span class="material-symbols-outlined">grade</span> Score: <span id="complete-score">0</span></p>
                 </div>
                 <div class="modal-buttons">
-                    <button class="btn btn-primary" onclick="nextLevel()">Next Level →</button>
+                    <button class="btn btn-primary" onclick="nextLevel()"><span class="material-symbols-outlined">navigate_next</span> Next Level</button>
                     <button class="btn btn-secondary" onclick="showScreen('main-menu')">Main Menu</button>
                 </div>
             </div>

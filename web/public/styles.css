@@ -1,11 +1,11 @@
 :root {
-  --tg-theme-bg-color: #ffffff;
-  --tg-theme-text-color: #000000;
-  --tg-theme-hint-color: #999999;
-  --tg-theme-link-color: #2481cc;
-  --tg-theme-button-color: #2481cc;
+  --tg-theme-bg-color: #eef7ed;
+  --tg-theme-text-color: #0f3d24;
+  --tg-theme-hint-color: #4f7c5d;
+  --tg-theme-link-color: #1f8a4b;
+  --tg-theme-button-color: #1f8a4b;
   --tg-theme-button-text-color: #ffffff;
-  --tg-theme-secondary-bg-color: #f0f0f0;
+  --tg-theme-secondary-bg-color: #e6f4e7;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 body {
@@ -23,7 +23,7 @@ body {
 #loading-screen { display: none; align-items: center; justify-content: center; flex-direction: column; height: 100vh; }
 #loading-screen.active { display: flex; }
 .puzzle-loader { display: grid; grid-template-columns: repeat(2, 40px); grid-template-rows: repeat(2, 40px); gap: 4px; margin-bottom: 20px; }
-.puzzle-loader .tile { background: var(--tg-theme-button-color, #2481cc); border-radius: 6px; animation: pulse 1s ease infinite; }
+.puzzle-loader .tile { background: var(--tg-theme-button-color, #1f8a4b); border-radius: 6px; animation: pulse 1s ease infinite; }
 .puzzle-loader .t1 { animation-delay: 0s; }
 .puzzle-loader .t2 { animation-delay: 0.2s; }
 .puzzle-loader .t3 { animation-delay: 0.4s; }
@@ -37,8 +37,8 @@ body {
 .user-details h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
 .user-details p { font-size: 13px; color: var(--tg-theme-hint-color, #999); }
 .menu-content { text-align: center; padding: 32px 16px; }
-.game-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--tg-theme-button-color, #2481cc), #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-.subtitle { color: var(--tg-theme-hint-color, #666); font-size: 15px; margin-bottom: 32px; }
+.game-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--tg-theme-button-color, #1f8a4b), #4bbf72); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.subtitle { color: var(--tg-theme-hint-color, #4f7c5d); font-size: 15px; margin-bottom: 32px; }
 .menu-buttons { display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin: 0 auto; }
 
 .btn { padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
@@ -51,6 +51,16 @@ body {
 .btn-small { padding: 8px 14px; font-size: 13px; border-radius: 8px; width: auto; }
 .btn-back { background: none; border: none; color: var(--tg-theme-link-color, #2481cc); font-size: 15px; cursor: pointer; padding: 8px 0; display: flex; align-items: center; gap: 6px; }
 .icon { font-size: 20px; }
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.material-symbols-outlined.icon { margin-right: 8px; }
 
 .screen-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 16px; border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #eee); margin-bottom: 16px; }
 .screen-header h2 { font-size: 18px; font-weight: 700; }
@@ -93,7 +103,7 @@ body {
 .leaderboard-info h4 { font-size: 15px; font-weight: 600; }
 .leaderboard-info p { font-size: 12px; color: var(--tg-theme-hint-color, #666); }
 .leaderboard-score { text-align: right; }
-.leaderboard-score .score { font-size: 18px; font-weight: 700; color: var(--tg-theme-button-color, #2481cc); }
+.leaderboard-score .score { font-size: 18px; font-weight: 700; color: var(--tg-theme-button-color, #1f8a4b); }
 .leaderboard-score .levels { font-size: 11px; color: var(--tg-theme-hint-color, #666); }
 
 .instructions { display: flex; flex-direction: column; gap: 20px; padding: 16px 0; }
@@ -107,7 +117,7 @@ body {
 .modal-content h2 { font-size: 24px; margin-bottom: 20px; }
 .modal-content .stats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
 .modal-content .stats p { font-size: 16px; color: var(--tg-theme-text-color, #000); }
-.modal-content .stats span { font-weight: 700; color: var(--tg-theme-button-color, #2481cc); }
+.modal-content .stats span { font-weight: 700; color: var(--tg-theme-button-color, #1f8a4b); }
 .modal-buttons { display: flex; flex-direction: column; gap: 10px; }
 
 @media (max-width: 360px) {

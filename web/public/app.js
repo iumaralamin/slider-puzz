@@ -60,7 +60,7 @@ async function initApp() {
             if (menuButtons) {
                 const adminBtn = document.createElement('button');
                 adminBtn.className = 'btn btn-secondary';
-                adminBtn.innerHTML = '<span class="icon">⚙️</span> Admin Panel';
+                adminBtn.innerHTML = '<span class="material-symbols-outlined icon">settings</span> Admin Panel';
                 adminBtn.onclick = () => window.location.href = '/admin.html';
                 menuButtons.appendChild(adminBtn);
             }
@@ -169,7 +169,7 @@ function renderLevels() {
                     <h3>${level.name}</h3>
                     <p>${level.dimension} • ${level.difficulty}</p>
                 </div>
-                <div class="level-badge ${completed ? 'completed' : ''}">${completed ? '✓' : level.points + ' pts'}</div>
+                <div class="level-badge ${completed ? 'completed' : ''}">${completed ? '<span class="material-symbols-outlined">check_circle</span>' : level.points + ' pts'}</div>
             </div>
         `;
     }).join('');
@@ -190,7 +190,7 @@ function initGame(level) {
     gameState.startTime = Date.now();
     gameState.board = [];
     document.getElementById('move-counter').textContent = 'Moves: 0';
-    document.getElementById('game-timer').textContent = '⏱️ 00:00';
+    document.getElementById('game-timer').innerHTML = '<span class="material-symbols-outlined">timer</span> 00:00';
     clearInterval(gameState.timerInterval);
     gameState.timerInterval = setInterval(updateTimer, 1000);
     const board = document.getElementById('puzzle-board');
@@ -340,7 +340,7 @@ function nextLevel() {
         startLevel(levels[currentIndex + 1].id);
     } else {
         showScreen('main-menu');
-        tg?.showAlert?.('🎉 Congratulations! You completed all levels!');
+        tg?.showAlert?.('Congratulations! You completed all levels!');
     }
 }
 
@@ -351,7 +351,7 @@ function quitGame() {
 
 function updateTimer() {
     const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
-    document.getElementById('game-timer').textContent = '⏱️ ' + formatTime(elapsed);
+    document.getElementById('game-timer').innerHTML = '<span class="material-symbols-outlined">timer</span> ' + formatTime(elapsed);
 }
 
 function formatTime(seconds) {
@@ -398,7 +398,7 @@ async function loadLeaderboard() {
         }
         list.innerHTML = data.map((player, i) => {
             const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+            const medal = i === 0 ? '<span class="material-symbols-outlined">emoji_events</span>' : i === 1 ? '<span class="material-symbols-outlined">military_tech</span>' : i === 2 ? '<span class="material-symbols-outlined">military_tech</span>' : (i + 1);
             return `
                 <div class="leaderboard-item">
                     <div class="leaderboard-rank ${rankClass}">${medal}</div>

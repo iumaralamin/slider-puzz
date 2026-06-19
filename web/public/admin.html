@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Admin Panel - Puzzle Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,700,0,0" />
     <link rel="stylesheet" href="styles.css">
     <style>
         .admin-nav { display: flex; gap: 8px; padding: 10px; background: var(--tg-theme-bg-color, #fff); border-bottom: 1px solid var(--tg-theme-hint-color, #ccc); overflow-x: auto; }
@@ -22,11 +23,11 @@
         .btn-small { padding: 4px 10px; font-size: 12px; margin: 2px; }
         .stats-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
         .stat-card { background: var(--tg-theme-secondary-bg-color, #f5f5f5); padding: 16px; border-radius: 12px; text-align: center; }
-        .stat-card .number { font-size: 28px; font-weight: bold; color: var(--tg-theme-button-color, #2481cc); }
+        .stat-card .number { font-size: 28px; font-weight: bold; color: var(--tg-theme-button-color, #1f8a4b); }
         .stat-card .label { font-size: 12px; color: var(--tg-theme-hint-color, #666); margin-top: 4px; }
         .dimension-options { display: flex; gap: 8px; flex-wrap: wrap; }
         .dimension-option { padding: 8px 16px; border: 2px solid var(--tg-theme-hint-color, #ccc); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .dimension-option.selected { border-color: var(--tg-theme-button-color, #2481cc); background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+        .dimension-option.selected { border-color: var(--tg-theme-button-color, #1f8a4b); background: var(--tg-theme-button-color, #1f8a4b); color: var(--tg-theme-button-text-color, #fff); }
         .preview-area { margin-top: 16px; text-align: center; }
         .preview-area img { max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid var(--tg-theme-hint-color, #ccc); }
         .actions-log { max-height: 400px; overflow-y: auto; }
@@ -51,23 +52,23 @@
         </div>
         <div id="access-denied" class="screen hidden">
             <div class="access-denied">
-                <h2>🚫</h2><h3>Access Denied</h3>
+                <h2><span class="material-symbols-outlined">block</span></h2><h3>Access Denied</h3>
                 <p>You are not authorized to access the admin panel.</p>
                 <button class="btn btn-primary" onclick="goToGame()">Go to Game</button>
             </div>
         </div>
         <div id="admin-panel" class="screen hidden">
             <div class="screen-header">
-                <h2>⚙️ Admin Panel</h2>
+                <h2><span class="material-symbols-outlined">settings</span> Admin Panel</h2>
                 <span id="admin-username" style="font-size: 12px; color: var(--tg-theme-hint-color, #666);"></span>
             </div>
             <div class="admin-nav">
-                <button class="active" onclick="showTab(event, 'dashboard')">📊 Dashboard</button>
-                <button onclick="showTab(event, 'levels')">🧩 Levels</button>
-                <button onclick="showTab(event, 'add-level')">➕ Add Level</button>
-                <button onclick="showTab(event, 'leaderboard')">🏆 Leaderboard</button>
-                <button onclick="showTab(event, 'users')">👥 Users</button>
-                <button onclick="showTab(event, 'actions')">📋 Actions</button>
+                <button class="active" onclick="showTab(event, 'dashboard')"><span class="material-symbols-outlined">dashboard</span> Dashboard</button>
+                <button onclick="showTab(event, 'levels')"><span class="material-symbols-outlined">grid_view</span> Levels</button>
+                <button onclick="showTab(event, 'add-level')"><span class="material-symbols-outlined">add_circle</span> Add Level</button>
+                <button onclick="showTab(event, 'leaderboard')"><span class="material-symbols-outlined">leaderboard</span> Leaderboard</button>
+                <button onclick="showTab(event, 'users')"><span class="material-symbols-outlined">groups</span> Users</button>
+                <button onclick="showTab(event, 'actions')"><span class="material-symbols-outlined">receipt_long</span> Actions</button>
             </div>
             <div id="tab-dashboard" class="admin-section active">
                 <div class="stats-cards">
@@ -95,12 +96,12 @@
                     <div class="form-group"><label>Time Limit (sec, 0 = none)</label><input type="number" id="level-time" value="0" min="0" max="3600"></div>
                     <div class="form-group"><label>Order Index</label><input type="number" id="level-order" value="0" min="0"></div>
                     <div class="form-group"><label>Upload Image</label><input type="file" id="level-image" accept="image/*" required onchange="previewImage(this)"><div class="preview-area" id="image-preview"></div></div>
-                    <button type="submit" class="btn btn-primary" style="width:100%">➕ Create Level</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%"><span class="material-symbols-outlined">add_circle</span> Create Level</button>
                 </form>
             </div>
             <div id="tab-leaderboard" class="admin-section">
                 <h3>Leaderboard Control</h3>
-                <div style="margin-bottom:16px"><button class="btn btn-danger" onclick="resetLeaderboard()">🗑️ Reset All Scores</button></div>
+                <div style="margin-bottom:16px"><button class="btn btn-danger" onclick="resetLeaderboard()"><span class="material-symbols-outlined">delete</span> Reset All Scores</button></div>
                 <table class="levels-table">
                     <thead><tr><th>Rank</th><th>User</th><th>Score</th><th>Levels</th><th>Visible</th></tr></thead>
                     <tbody id="leaderboard-table-body"></tbody>
@@ -181,7 +182,7 @@
         async function loadLevels() {
             try {
                 const levels = await apiCall('/api/admin/levels');
-                document.getElementById('levels-table-body').innerHTML = levels.map(l => '<tr><td><img src="' + l.image_url + '" alt="' + l.name + '"></td><td>' + l.name + '</td><td>' + l.dimension + '</td><td>' + l.points + '</td><td><label class="toggle-switch"><input type="checkbox" ' + (l.is_active ? 'checked' : '') + ' onchange="toggleLevel(' + l.id + ', this.checked)"><span class="slider"></span></label></td><td><button class="btn btn-small btn-danger" onclick="deleteLevel(' + l.id + ')">🗑️</button></td></tr>').join('');
+                document.getElementById('levels-table-body').innerHTML = levels.map(l => '<tr><td><img src="' + l.image_url + '" alt="' + l.name + '"></td><td>' + l.name + '</td><td>' + l.dimension + '</td><td>' + l.points + '</td><td><label class="toggle-switch"><input type="checkbox" ' + (l.is_active ? 'checked' : '') + ' onchange="toggleLevel(' + l.id + ', this.checked)"><span class="slider"></span></label></td><td><button class="btn btn-small btn-danger" onclick="deleteLevel(' + l.id + ')"><span class="material-symbols-outlined">delete</span></button></td></tr>').join('');
             } catch (e) { console.error(e); }
         }
         async function toggleLevel(id, active) { try { await apiCall('/api/admin/levels/' + id, { method: 'PUT', body: JSON.stringify({ isActive: active }) }); tg.showAlert(active ? 'Activated!' : 'Deactivated!'); } catch (e) { tg.showAlert('Error: ' + e.message); } }
