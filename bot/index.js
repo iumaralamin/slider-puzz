@@ -144,7 +144,7 @@ function verifyInitData(req, res, next) {
         const dataCheckString = Array.from(params.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([k, v]) => `${k}=${v}`).join('\n');
-        const secretKey = crypto.createHash('sha256').update(BOT_TOKEN).digest();
+        const secretKey = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
         const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
         if (computedHash !== hash) return res.status(401).json({ error: 'Invalid init data' });
         req.user = JSON.parse(params.get('user'));
@@ -178,7 +178,7 @@ app.post('/api/auth', async (req, res) => {
         const dataCheckString = Array.from(params.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([k, v]) => `${k}=${v}`).join('\n');
-        const secretKey = crypto.createHash('sha256').update(BOT_TOKEN).digest();
+        const secretKey = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
         const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
         if (computedHash !== hash) return res.status(401).json({ error: 'Invalid init data' });
         const userData = JSON.parse(params.get('user'));
