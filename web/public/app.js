@@ -439,7 +439,19 @@ function shuffleBoard() {
 }
 
 function resetGame() {
-    if (currentLevel) initGame(currentLevel);
+    if (!currentLevel) return;
+    // Preserve existing DOM tiles and image sizing.
+    // Reset counters and timer, then reshuffle the board in-place.
+    clearInterval(gameState.timerInterval);
+    gameState.moves = 0;
+    gameState.startTime = Date.now();
+    document.getElementById('move-counter').textContent = 'Moves: 0';
+    document.getElementById('game-timer').innerHTML = '<span class="material-symbols-outlined">timer</span> 00:00';
+    // Shuffle existing board positions without rebuilding tile elements
+    shuffleBoard();
+    // Restart timer
+    clearInterval(gameState.timerInterval);
+    gameState.timerInterval = setInterval(updateTimer, 1000);
 }
 
 async function loadLeaderboard() {
