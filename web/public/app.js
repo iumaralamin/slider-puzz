@@ -136,7 +136,10 @@ async function loadUserProgress() {
 
 function getImageUrl(url) {
     if (!url) return 'https://via.placeholder.com/300?text=No+Image';
-    return url.startsWith('http') ? url : API_URL + url;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('//')) return window.location.protocol + url;
+    if (url.startsWith('/')) return API_URL + url;
+    return API_URL + '/' + url;
 }
 
 function renderLevels() {
@@ -208,7 +211,11 @@ function initGame(level) {
         gameState.board.push({ ...tile, currentRow: row, currentCol: col, element: tileEl });
         if (tile.num === 0) gameState.emptyPos = { row, col };
     });
-    document.getElementById('preview-img').src = getImageUrl(level.image_url);
+    const previewImage = document.getElementById('preview-img');
+    if (previewImage) {
+        previewImage.src = getImageUrl(level.image_url);
+        previewImage.onerror = () => previewImage.src = 'https://via.placeholder.com/300?text=No+Preview';
+    }
 }
 
 function shuffleArray(array) {
