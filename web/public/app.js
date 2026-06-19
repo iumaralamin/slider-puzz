@@ -451,8 +451,6 @@ function shuffleBoard() {
         boardTile.currentCol = col;
         if (tile.num === 0) gameState.emptyPos = { row, col };
     });
-    gameState.moves = 0;
-    document.getElementById('move-counter').textContent = 'Moves: 0';
     renderBoard();
 }
 
