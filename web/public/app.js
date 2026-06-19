@@ -10,8 +10,9 @@ let isPreviewOpen = false;
 if (tg) {
     tg.ready();
     tg.expand();
-    tg.setHeaderColor(tg.themeParams.bg_color || '#ffffff');
-    tg.setBackgroundColor(tg.themeParams.bg_color || '#ffffff');
+    const bgColor = tg.themeParams?.bg_color || '#ffffff';
+    tg.setHeaderColor(bgColor);
+    tg.setBackgroundColor(bgColor);
 }
 
 async function initApp() {
@@ -49,12 +50,19 @@ async function initApp() {
     } catch (err) {
         console.error('Init error:', err);
         showScreen('main-menu');
+    } finally {
+        if (!document.querySelector('.screen.active')) {
+            showScreen('main-menu');
+        }
     }
 }
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('loading'));
+    const screen = document.getElementById(screenId);
+    if (!screen) return;
+    screen.classList.add('active');
     if (screenId === 'leaderboard') loadLeaderboard();
 }
 

@@ -13,7 +13,11 @@ require('dotenv').config();
 
 // ==================== CONFIG ====================
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || '').split(',').map(u => u.trim().toLowerCase()).filter(Boolean);
+const normalizeUsername = (username = '') => username.toString().trim().replace(/^@+/, '').toLowerCase();
+const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || '')
+    .split(',')
+    .map(u => normalizeUsername(u))
+    .filter(Boolean);
 const WEB_APP_URL = process.env.WEB_APP_URL || 'https://your-app.onrender.com';
 const DATABASE_URL = process.env.DATABASE_URL;
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-me';
@@ -142,7 +146,7 @@ function verifyAdmin(req, res, next) {
     try {
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, JWT_SECRET);
-        if (!ADMIN_USERNAMES.includes(decoded.username.toLowerCase()))
+        if (!ADMIN_USERNAMES.includes(normalizeUsername(decoded.username)))
             return res.status(403).json({ error: 'Not admin' });
         req.admin = decoded;
         next();
@@ -166,7 +170,7 @@ app.post('/api/auth', async (req, res) => {
         const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
         if (computedHash !== hash) return res.status(401).json({ error: 'Invalid init data' });
         const userData = JSON.parse(params.get('user'));
-        const isAdmin = ADMIN_USERNAMES.includes((userData.username || '').toLowerCase());
+        const isAdmin = ADMIN_USERNAMES.includes(normalizeUsername(userData.username));
         const result = await pool.query(
             `INSERT INTO users (telegram_id, username, first_name, last_name, photo_url)
              VALUES ($1, $2, $3, $4, $5)
@@ -272,7 +276,7 @@ app.post('/api/admin/login', async (req, res) => {
         const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
         if (computedHash !== hash) return res.status(401).json({ error: 'Invalid init data' });
         const userData = JSON.parse(params.get('user'));
-        const username = (userData.username || '').toLowerCase();
+        const username = normalizeUsername(userData.username);
         if (!ADMIN_USERNAMES.includes(username)) return res.status(403).json({ error: 'Not admin' });
         const token = jwt.sign({ userId: userData.id, username: userData.username, telegramId: userData.id }, JWT_SECRET, { expiresIn: '24h' });
         res.json({ token, username: userData.username });
