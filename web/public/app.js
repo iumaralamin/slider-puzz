@@ -134,6 +134,11 @@ async function loadUserProgress() {
     } catch (err) { console.error('Load progress error:', err); }
 }
 
+function getImageUrl(url) {
+    if (!url) return 'https://via.placeholder.com/300?text=No+Image';
+    return url.startsWith('http') ? url : API_URL + url;
+}
+
 function renderLevels() {
     const grid = document.getElementById('levels-grid');
     if (!grid) return;
@@ -145,9 +150,10 @@ function renderLevels() {
         const progress = userProgress.find(p => p.level_id === level.id);
         const completed = progress && progress.completed;
         const isLocked = index > 0 && !userProgress.find(p => p.level_id === levels[index - 1].id && p.completed);
+        const imageUrl = getImageUrl(level.image_url);
         return `
             <div class="level-card ${completed ? 'completed' : ''} ${isLocked ? 'locked' : ''}" onclick="${isLocked ? '' : `startLevel(${level.id})`}">
-                <img src="${level.image_url}" alt="${level.name}">
+                <img src="${imageUrl}" alt="${level.name}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                 <div class="level-card-info">
                     <h3>${level.name}</h3>
                     <p>${level.dimension} • ${level.difficulty}</p>
@@ -183,6 +189,7 @@ function initGame(level) {
     for (let i = 0; i < totalTiles - 1; i++) tiles.push({ num: i + 1, correctPos: i });
     tiles.push({ num: 0, correctPos: totalTiles - 1 });
     do { shuffleArray(tiles); } while (!isSolvable(tiles, rows, cols) || isSolved(tiles));
+    const boardImageUrl = getImageUrl(level.image_url);
     tiles.forEach((tile, index) => {
         const row = Math.floor(index / cols);
         const col = index % cols;
@@ -191,7 +198,7 @@ function initGame(level) {
         const tileEl = document.createElement('div');
         tileEl.className = 'puzzle-tile' + (tile.num === 0 ? ' empty' : '');
         if (tile.num !== 0) {
-            tileEl.style.backgroundImage = `url(${level.image_url})`;
+            tileEl.style.backgroundImage = `url(${boardImageUrl})`;
             tileEl.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
             tileEl.style.backgroundPosition = `${correctCol * (100 / (cols - 1))}% ${correctRow * (100 / (rows - 1))}%`;
             tileEl.innerHTML = `<span class="puzzle-tile-number">${tile.num}</span>`;
@@ -201,7 +208,7 @@ function initGame(level) {
         gameState.board.push({ ...tile, currentRow: row, currentCol: col, element: tileEl });
         if (tile.num === 0) gameState.emptyPos = { row, col };
     });
-    document.getElementById('preview-img').src = level.image_url;
+    document.getElementById('preview-img').src = getImageUrl(level.image_url);
 }
 
 function shuffleArray(array) {
