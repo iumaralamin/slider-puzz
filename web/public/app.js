@@ -1,5 +1,5 @@
 const API_URL = window.location.origin;
-let tg = window.Telegram.WebApp;
+let tg = window.Telegram?.WebApp || null;
 let currentUser = null;
 let currentLevel = null;
 let levels = [];
@@ -7,13 +7,15 @@ let userProgress = [];
 let gameState = { board: [], emptyPos: { row: 0, col: 0 }, moves: 0, startTime: null, timerInterval: null };
 let isPreviewOpen = false;
 
-tg.ready();
-tg.expand();
-tg.setHeaderColor(tg.themeParams.bg_color || '#ffffff');
-tg.setBackgroundColor(tg.themeParams.bg_color || '#ffffff');
+if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor(tg.themeParams.bg_color || '#ffffff');
+    tg.setBackgroundColor(tg.themeParams.bg_color || '#ffffff');
+}
 
 async function initApp() {
-    const initData = tg.initData;
+    const initData = tg?.initData || null;
     if (!initData) {
         showScreen('main-menu');
         document.getElementById('user-name').textContent = 'Guest';
@@ -73,10 +75,12 @@ async function loadLevels() {
 async function loadUserProgress() {
     if (!currentUser) return;
     try {
+        const initData = tg?.initData || null;
+        if (!initData) return;
         const res = await fetch(API_URL + '/api/progress', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData })
+            body: JSON.stringify({ initData })
         });
         userProgress = await res.json();
     } catch (err) { console.error('Load progress error:', err); }
@@ -237,15 +241,17 @@ function handleWin() {
     document.getElementById('complete-score').textContent = score;
     document.getElementById('level-complete').classList.remove('hidden');
     if (currentUser) saveProgress(currentLevel.id, gameState.moves, timeTaken, score, true);
-    tg.HapticFeedback.notificationOccurred('success');
+    tg?.HapticFeedback?.notificationOccurred?.('success');
 }
 
 async function saveProgress(levelId, moves, timeTaken, score, completed) {
     try {
+        const initData = tg?.initData || null;
+        if (!initData) return;
         await fetch(API_URL + '/api/progress/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData, levelId, moves, timeTaken, score, completed })
+            body: JSON.stringify({ initData, levelId, moves, timeTaken, score, completed })
         });
         await loadUserProgress();
         updateUserStats();
@@ -259,7 +265,7 @@ function nextLevel() {
         startLevel(levels[currentIndex + 1].id);
     } else {
         showScreen('main-menu');
-        tg.showAlert('🎉 Congratulations! You completed all levels!');
+        tg?.showAlert?.('🎉 Congratulations! You completed all levels!');
     }
 }
 

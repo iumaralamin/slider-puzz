@@ -1,12 +1,10 @@
 services:
-  # Bot + API Service
   - type: web
-    name: puzzle-bot-api
+    name: telegram-puzzle-bot
     runtime: node
     plan: free
-    rootDir: bot
-    buildCommand: npm install
-    startCommand: node index.js
+    buildCommand: npm run install:all
+    startCommand: cd bot && npm start
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -14,7 +12,7 @@ services:
         sync: false
       - key: WEB_APP_URL
         fromService:
-          name: puzzle-web-app
+          name: telegram-puzzle-bot
           type: web
           property: url
       - key: DATABASE_URL
@@ -25,18 +23,6 @@ services:
         generateValue: true
       - key: NODE_ENV
         value: production
-
-  # Web App Service
-  - type: web
-    name: puzzle-web-app
-    runtime: node
-    plan: free
-    rootDir: web
-    buildCommand: npm install
-    startCommand: node server.js
-    envVars:
-      - key: PORT
-        value: 10000
 
 databases:
   - name: puzzle-db

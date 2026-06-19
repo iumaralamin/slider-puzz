@@ -62,12 +62,12 @@
                 <span id="admin-username" style="font-size: 12px; color: var(--tg-theme-hint-color, #666);"></span>
             </div>
             <div class="admin-nav">
-                <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
-                <button onclick="showTab('levels')">🧩 Levels</button>
-                <button onclick="showTab('add-level')">➕ Add Level</button>
-                <button onclick="showTab('leaderboard')">🏆 Leaderboard</button>
-                <button onclick="showTab('users')">👥 Users</button>
-                <button onclick="showTab('actions')">📋 Actions</button>
+                <button class="active" onclick="showTab(event, 'dashboard')">📊 Dashboard</button>
+                <button onclick="showTab(event, 'levels')">🧩 Levels</button>
+                <button onclick="showTab(event, 'add-level')">➕ Add Level</button>
+                <button onclick="showTab(event, 'leaderboard')">🏆 Leaderboard</button>
+                <button onclick="showTab(event, 'users')">👥 Users</button>
+                <button onclick="showTab(event, 'actions')">📋 Actions</button>
             </div>
             <div id="tab-dashboard" class="admin-section active">
                 <div class="stats-cards">
@@ -121,8 +121,8 @@
     </div>
     <script>
         const API_URL = window.location.origin;
-        let adminToken = null, tg = window.Telegram.WebApp, selectedDimension = '3x3';
-        tg.ready(); tg.expand();
+        let adminToken = null, tg = window.Telegram?.WebApp || null, selectedDimension = '3x3';
+        if (tg) { tg.ready(); tg.expand(); }
         async function initAdmin() {
             const initData = tg.initData;
             if (!initData) { showDenied(); return; }
@@ -140,11 +140,12 @@
         }
         function showDenied() { document.getElementById('admin-loading').classList.remove('active'); document.getElementById('access-denied').classList.remove('hidden'); document.getElementById('access-denied').classList.add('active'); }
         function goToGame() { window.location.href = '/'; }
-        function showTab(tab) {
+        function showTab(e, tab) {
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
-            event.target.classList.add('active');
+            const button = e.currentTarget || e.target;
+            button.classList.add('active');
             if (tab === 'dashboard') loadDashboard(); if (tab === 'levels') loadLevels(); if (tab === 'leaderboard') loadLeaderboard(); if (tab === 'users') loadUsers(); if (tab === 'actions') loadActions();
         }
         async function apiCall(endpoint, opts = {}) {
@@ -186,7 +187,7 @@
             try {
                 const res = await fetch(API_URL + '/api/admin/levels', { method: 'POST', headers: { 'Authorization': 'Bearer ' + adminToken }, body: formData });
                 if (!res.ok) throw new Error('Failed');
-                tg.showAlert('Level created!');
+                tg?.showAlert?.('Level created!');
                 document.getElementById('add-level-form').reset();
                 document.getElementById('image-preview').innerHTML = '';
                 showTab('levels'); loadLevels();
