@@ -16,44 +16,76 @@ if (tg) {
 }
 
 async function initApp() {
-    const initData = tg?.initData || null;
-    if (!initData) {
+    // Always show menu within 5 seconds max
+    const timeout = setTimeout(() => {
+        console.log('[INIT] Timeout reached, showing main menu');
         showScreen('main-menu');
+    }, 5000);
+
+    const initData = tg?.initData || null;
+    console.log('[INIT] Starting init, has initData:', !!initData);
+
+    if (!initData) {
+        console.log('[INIT] No initData, loading as guest');
         document.getElementById('user-name').textContent = 'Guest';
         document.getElementById('user-avatar').src = 'https://via.placeholder.com/56';
+        showScreen('main-menu');
         loadLevels();
+        clearTimeout(timeout);
         return;
     }
+
     try {
+        console.log('[INIT] Authenticating user...');
         const res = await fetch(API_URL + '/api/auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ initData })
         });
-        if (!res.ok) throw new Error('Auth failed');
+        
+        if (!res.ok) {
+            console.error('[INIT] Auth failed:', res.status);
+            throw new Error('Auth failed: ' + res.status);
+        }
+
         const data = await res.json();
+        console.log('[INIT] Auth success, user:', data.user.username);
         currentUser = data.user;
+        
         document.getElementById('user-name').textContent = currentUser.firstName || currentUser.username || 'Player';
         document.getElementById('user-avatar').src = currentUser.photoUrl || 'https://via.placeholder.com/56';
+        
         if (currentUser.isAdmin) {
             const menuButtons = document.querySelector('.menu-buttons');
-            const adminBtn = document.createElement('button');
-            adminBtn.className = 'btn btn-secondary';
-            adminBtn.innerHTML = '<span class="icon">⚙️</span> Admin Panel';
-            adminBtn.onclick = () => window.location.href = '/admin.html';
-            menuButtons.appendChild(adminBtn);
+            if (menuButtons) {
+                const adminBtn = document.createElement('button');
+                adminBtn.className = 'btn btn-secondary';
+                adminBtn.innerHTML = '<span class="icon">⚙️</span> Admin Panel';
+                adminBtn.onclick = () => window.location.href = '/admin.html';
+                menuButtons.appendChild(adminBtn);
+            }
         }
-        await loadUserProgress();
-        updateUserStats();
-        await loadLevels();
+
+        // Show menu immediately, load data in background
         showScreen('main-menu');
+        console.log('[INIT] Menu shown, loading data in background...');
+        
+        // Load data without blocking UI
+        Promise.all([loadUserProgress(), loadLevels()])
+            .then(() => {
+                console.log('[INIT] Data loaded');
+                updateUserStats();
+            })
+            .catch(err => console.error('[INIT] Background load error:', err));
+
+        clearTimeout(timeout);
     } catch (err) {
-        console.error('Init error:', err);
+        console.error('[INIT] Error:', err);
+        document.getElementById('user-name').textContent = 'Guest';
+        document.getElementById('user-avatar').src = 'https://via.placeholder.com/56';
         showScreen('main-menu');
-    } finally {
-        if (!document.querySelector('.screen.active')) {
-            showScreen('main-menu');
-        }
+        loadLevels();
+        clearTimeout(timeout);
     }
 }
 
