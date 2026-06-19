@@ -134,12 +134,20 @@ async function loadUserProgress() {
     } catch (err) { console.error('Load progress error:', err); }
 }
 
+function isValidImageUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const cleaned = url.trim();
+    if (cleaned === '/uploads' || cleaned === '/uploads/' || cleaned === 'uploads/' || cleaned === 'uploads') return false;
+    return /\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(cleaned) || cleaned.startsWith('http://') || cleaned.startsWith('https://') || cleaned.startsWith('//') || cleaned.startsWith('/');
+}
+
 function getImageUrl(url) {
-    if (!url) return 'https://via.placeholder.com/300?text=No+Image';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    if (url.startsWith('//')) return window.location.protocol + url;
-    if (url.startsWith('/')) return API_URL + url;
-    return API_URL + '/' + url;
+    if (!isValidImageUrl(url)) return 'https://via.placeholder.com/300?text=No+Image';
+    const cleaned = url.trim();
+    if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) return cleaned;
+    if (cleaned.startsWith('//')) return window.location.protocol + cleaned;
+    if (cleaned.startsWith('/')) return API_URL + cleaned;
+    return API_URL + '/' + cleaned;
 }
 
 function renderLevels() {
