@@ -13,15 +13,23 @@ require('dotenv').config();
 
 // ==================== CONFIG ====================
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const normalizeUsername = (username = '') => username.toString().trim().replace(/^@+/, '').toLowerCase();
-const ADMIN_USERNAMES = (process.env.ADMIN_USERNAMES || '')
+const normalizeUsername = (username = '') => String(username || '').trim().replace(/^@+/, '').toLowerCase();
+const rawAdminUsers = (process.env.ADMIN_USERNAMES || '')
     .split(/[,;\s]+/)
-    .map(u => normalizeUsername(u))
+    .map(u => u.trim())
     .filter(Boolean);
-const ADMIN_USER_IDS = (process.env.ADMIN_USER_IDS || '')
-    .split(/[,;\s]+/)
-    .map(id => Number(id))
-    .filter(id => Number.isInteger(id) && id > 0);
+const ADMIN_USERNAMES = rawAdminUsers
+    .filter(u => !/^[0-9]+$/.test(u))
+    .map(u => normalizeUsername(u));
+const ADMIN_USER_IDS = [
+    ...rawAdminUsers
+        .filter(u => /^[0-9]+$/.test(u))
+        .map(id => Number(id)),
+    ...((process.env.ADMIN_USER_IDS || '')
+        .split(/[,;\s]+/)
+        .map(id => Number(id))
+        .filter(id => Number.isInteger(id) && id > 0))
+].filter((id, index, self) => Number.isInteger(id) && id > 0 && self.indexOf(id) === index);
 const WEB_APP_URL = process.env.WEB_APP_URL || 'https://your-app.onrender.com';
 const DATABASE_URL = process.env.DATABASE_URL;
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-me';
@@ -281,9 +289,10 @@ app.post('/api/admin/login', async (req, res) => {
         if (computedHash !== hash) return res.status(401).json({ error: 'Invalid init data' });
         const userData = JSON.parse(params.get('user'));
         const username = normalizeUsername(userData.username);
-        const isAdmin = ADMIN_USERNAMES.includes(username) || ADMIN_USER_IDS.includes(Number(userData.id));
+        const userId = Number(userData.id || userData.user_id || userData.telegram_id);
+        const isAdmin = (username && ADMIN_USERNAMES.includes(username)) || ADMIN_USER_IDS.includes(userId);
         if (!isAdmin) return res.status(403).json({ error: 'Not admin' });
-        const token = jwt.sign({ userId: userData.id, username: userData.username, telegramId: userData.id }, JWT_SECRET, { expiresIn: '24h' });
+        const token = jwt.sign({ userId: userId || userData.id, username: userData.username || '', telegramId: userId || userData.id }, JWT_SECRET, { expiresIn: '24h' });
         res.json({ token, username: userData.username });
     } catch (err) { res.status(500).json({ error: 'Login failed' }); }
 });
