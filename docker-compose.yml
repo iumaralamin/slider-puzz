@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  bot:
+    build: ./bot
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    volumes:
+      - ./web/public/uploads:/usr/src/app/../web/public/uploads
+
+  web:
+    build: ./web
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+    depends_on:
+      - bot
+
+# Use docker-compose up --build to run both services locally
