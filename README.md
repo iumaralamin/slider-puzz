@@ -35,6 +35,8 @@ Required environment variables for Render or local run:
 - `ADMIN_USERNAMES` — comma-separated Telegram usernames allowed to access admin features
 - `WEB_APP_URL` — public URL for the web app (e.g. `https://<your-render-service>.onrender.com`)
 - `DATABASE_URL` — PostgreSQL connection URL
+ - `DATABASE_URL` — Database connection URL. For MySQL use `mysql://user:pass@host:3306/dbname`.
+ - `DATABASE_TYPE` — Optional. Set to `mysql` to use MySQL (default `postgres`).
 
 ## Render deployment
 
